@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { config } from "../config";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Heart, Sparkles } from "lucide-react";
+import { config } from "../config";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface QuestionScreenProps {
@@ -14,71 +14,120 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
   const [attempts, setAttempts] = useState(0);
   const [clickedYes, setClickedYes] = useState(false);
   const [showHearts, setShowHearts] = useState(false);
+  const mousePos = useRef({ x: 0, y: 0 });
   const noButtonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasInZone = useRef(false);
 
-  // Сброс позиции кнопки "Нет" при первом рендере
+  // Сброс при первом рендере
   useEffect(() => {
     setNoButtonPosition({ x: 0, y: 0 });
     setAttempts(0);
   }, []);
 
-  const handleNoHover = () => {
-    if (!containerRef.current || !noButtonRef.current) return;
+  // Отслеживание позиции курсора
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePos.current = { x: e.clientX, y: e.clientY };
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        mousePos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
 
-    const container = containerRef.current.getBoundingClientRect();
-    const button = noButtonRef.current.getBoundingClientRect();
+  // Убегание от курсора
+  useEffect(() => {
+    if (clickedYes || !noButtonRef.current || !containerRef.current) return;
 
-    // Увеличиваем счетчик попыток
-    setAttempts((prev) => prev + 1);
+    const runAwayRadius = 130;
+    const runAwaySpeed = 20;
+    const padding = 60;
 
-    // Генерируем случайную позицию в пределах экрана
-    const maxX = container.width - button.width - 40;
-    const maxY = container.height - button.height - 40;
+    const maxX = Math.min(300, window.innerWidth / 2 - padding);
+    const maxY = Math.min(250, window.innerHeight / 2 - padding);
 
-    const randomX = Math.random() * maxX - maxX / 2;
-    const randomY = Math.random() * maxY - maxY / 2;
+    const raf = requestAnimationFrame(function check() {
+      const rect = noButtonRef.current?.getBoundingClientRect();
+      if (!rect) {
+        requestAnimationFrame(check);
+        return;
+      }
 
-    setNoButtonPosition({ x: randomX, y: randomY });
-  };
+      const buttonCenterX = rect.left + rect.width / 2;
+      const buttonCenterY = rect.top + rect.height / 2;
+
+      const cursorX = mousePos.current.x;
+      const cursorY = mousePos.current.y;
+
+      const dx = cursorX - buttonCenterX;
+      const dy = cursorY - buttonCenterY;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance < runAwayRadius && distance > 5) {
+        if (!wasInZone.current) {
+          wasInZone.current = true;
+          setAttempts((prev) => prev + 1);
+        }
+        const angle = Math.atan2(dy, dx);
+        const strength = runAwaySpeed * (1 - distance / runAwayRadius);
+        const moveX = Math.cos(angle) * strength;
+        const moveY = Math.sin(angle) * strength;
+
+        setNoButtonPosition((prev) => ({
+          x: Math.max(-maxX, Math.min(maxX, prev.x + moveX)),
+          y: Math.max(-maxY, Math.min(maxY, prev.y + moveY)),
+        }));
+      } else {
+        wasInZone.current = false;
+      }
+
+      requestAnimationFrame(check);
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [clickedYes]);
 
   const handleNoClick = () => {
-    // Даже если пользователь попал по кнопке, вызываем onNo
     onNo();
   };
 
   const handleYesClick = () => {
     setClickedYes(true);
     setShowHearts(true);
-    
-    // Небольшая задержка перед переходом для показа анимации
+
     setTimeout(() => {
       onYes();
     }, 1200);
   };
 
-  // Кнопка уменьшается после каждых 3 попыток
   const buttonScale = Math.max(0.4, 1 - Math.floor(attempts / 3) * 0.15);
 
   return (
     <motion.div
-      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 flex items-center justify-center overflow-hidden"
     >
-      {/* Фоновое фото с размытием */}
+      {/* Фон */}
       <div className="absolute inset-0">
         <ImageWithFallback
           src={config.startPhotos[0]}
           alt="Фон"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/60 via-orange-400/50 to-amber-500/60 backdrop-blur-md"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-red-500/40 via-orange-400/30 to-amber-500/40 backdrop-blur-md" />
       </div>
 
-      {/* Декоративные сердечки на фоне */}
+      {/* Падающие сердечки */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(15)].map((_, i) => (
           <motion.div
@@ -108,7 +157,7 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
         ))}
       </div>
 
-      {/* Анимация при нажатии "Да" - взрыв сердец */}
+      {/* Взрыв сердец при "Да" */}
       <AnimatePresence>
         {showHearts && (
           <>
@@ -153,7 +202,7 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
           transition={{ type: "spring", duration: 0.8 }}
           className="mb-12"
         >
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl px-8 py-6 shadow-2xl">
+          <div className="bg-white/85 backdrop-blur-sm rounded-3xl px-8 py-6 shadow-2xl">
             <h1 className="text-4xl md:text-6xl text-red-600 flex items-center justify-center gap-3">
               <Sparkles className="text-amber-500" />
               {config.texts.question}
@@ -162,10 +211,10 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
           </div>
         </motion.div>
 
-        {/* Контейнер для кнопок */}
-        <div className="relative h-48 flex items-center justify-center">
-          <div className="flex items-center gap-4 md:gap-8">
-            {/* Кнопка "Да" */}
+        {/* Кнопки */}
+        <div ref={containerRef} className="relative h-48 flex items-center justify-center">
+          <div className="flex items-center gap-3 md:gap-6">
+            {/* "Да" */}
             <motion.button
               initial={{ x: -100, opacity: 0 }}
               animate={
@@ -201,13 +250,11 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
               >
                 {config.texts.buttonYes}
               </motion.span>
-              {/* Анимация блеска */}
+
               {!clickedYes && (
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                  animate={{
-                    x: ["-100%", "200%"],
-                  }}
+                  animate={{ x: ["-100%", "200%"] }}
                   transition={{
                     duration: 2,
                     repeat: Infinity,
@@ -217,45 +264,39 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
               )}
             </motion.button>
 
-            {/* Placeholder для кнопки "Нет" - сохраняет место в layout */}
-            <div className="w-[140px] md:w-[180px] h-[68px] md:h-[88px]"></div>
+            {/* "Нет" */}
+            <motion.button
+              ref={noButtonRef}
+              initial={{ opacity: 0 }}
+              animate={{
+                x: noButtonPosition.x,
+                y: noButtonPosition.y,
+                opacity: clickedYes ? 0 : 1,
+                scale: buttonScale,
+              }}
+              transition={{
+                opacity: { delay: 0.3 },
+                x: { type: "spring", stiffness: 180, damping: 20 },
+                y: { type: "spring", stiffness: 180, damping: 20 },
+                scale: { type: "spring", stiffness: 300, damping: 20 },
+              }}
+              onClick={handleNoClick}
+              disabled={clickedYes}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-8 md:px-10 py-4 md:py-5 rounded-full shadow-2xl transition-colors text-xl md:text-2xl font-bold"
+            >
+              {config.texts.buttonNo}
+            </motion.button>
           </div>
-
-          {/* Кнопка "Нет" (убегающая) - absolute позиционирование */}
-          <motion.button
-            ref={noButtonRef}
-            initial={{ opacity: 0 }}
-            animate={{
-              x: noButtonPosition.x,
-              y: noButtonPosition.y,
-              opacity: clickedYes ? 0 : 1,
-              scale: buttonScale,
-              rotate: attempts > 0 ? [0, -5, 5, -5, 0] : 0,
-            }}
-            transition={{
-              opacity: { delay: 0.3 },
-              type: "spring",
-              stiffness: 300,
-              damping: 20,
-            }}
-            onMouseEnter={handleNoHover}
-            onTouchStart={handleNoHover}
-            onClick={handleNoClick}
-            disabled={clickedYes}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-10 md:px-12 py-5 md:py-6 rounded-full shadow-2xl transition-colors text-xl md:text-3xl absolute right-0 font-bold"
-          >
-            {config.texts.buttonNo}
-          </motion.button>
         </div>
 
-        {/* Подсказка после нескольких попыток */}
+        {/* Подсказка */}
         {attempts > 5 && !clickedYes && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-8"
           >
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-xl inline-block">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-xl inline-block">
               <p className="text-red-600 text-lg italic font-medium">
                 Может, всё-таки «Да»? 😊
               </p>

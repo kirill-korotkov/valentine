@@ -60,16 +60,26 @@ export function FinalScreen({ onRestart }: FinalScreenProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gradient-to-br from-red-400 via-orange-300 to-amber-400 overflow-auto"
+      className="fixed inset-0 overflow-hidden"
     >
-      <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
-        <div className="max-w-4xl w-full">
+      {/* Фон: большое размытое фото + градиент */}
+      <div className="absolute inset-0">
+        <ImageWithFallback
+          src={config.finalPhoto}
+          alt="Фон финального экрана"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-500/40 via-orange-400/30 to-amber-500/40 backdrop-blur-lg" />
+      </div>
+
+      <div className="relative h-screen flex items-center justify-center p-3 md:p-6 overflow-hidden">
+        <div className="max-w-4xl w-full flex flex-col items-center justify-center gap-2 md:gap-4 max-h-full py-4">
           {/* Заголовок */}
           <motion.div
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-center mb-8"
+            className="text-center shrink-0"
           >
             <motion.div
               animate={{
@@ -80,40 +90,40 @@ export function FinalScreen({ onRestart }: FinalScreenProps) {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="flex items-center justify-center gap-3 mb-4"
+              className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4"
             >
-              <Heart className="text-red-600" size={40} fill="currentColor" />
-              <h1 className="text-4xl md:text-6xl text-red-600 font-bold">
+              <Heart className="text-red-600 shrink-0 w-7 h-7 md:w-10 md:h-10" fill="currentColor" />
+              <h1 className="text-2xl md:text-5xl text-red-600 font-bold">
                 {config.texts.finalTitle}
               </h1>
-              <Heart className="text-red-600" size={40} fill="currentColor" />
+              <Heart className="text-red-600 shrink-0 w-7 h-7 md:w-10 md:h-10" fill="currentColor" />
             </motion.div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-xl inline-block">
-              <p className="text-xl md:text-2xl text-red-700 max-w-2xl mx-auto leading-relaxed font-medium">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2 md:px-6 md:py-4 shadow-xl inline-block">
+              <p className="text-base md:text-xl text-red-700 max-w-2xl mx-auto leading-relaxed font-medium">
                 {config.texts.finalMessage}
               </p>
             </div>
           </motion.div>
 
-          {/* Финальное фото */}
+          {/* Финальное фото в центре */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.4, type: "spring" }}
-            className="relative w-full max-w-2xl mx-auto mb-8 rounded-3xl overflow-hidden shadow-2xl"
+            className="relative w-full max-w-2xl mx-auto shrink-0 rounded-2xl overflow-hidden shadow-2xl bg-white/20"
           >
-            <div className="aspect-[4/3] relative">
+            <div className="aspect-[4/3] w-full max-w-full max-h-[38vh] md:max-h-[42vh] relative">
               <ImageWithFallback
                 src={config.finalPhoto}
                 alt="Наше фото"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
               {/* Декоративная рамка */}
-              <div className="absolute inset-0 border-8 border-white/40 rounded-3xl pointer-events-none"></div>
+              <div className="absolute inset-0 border-4 md:border-8 border-white/40 rounded-2xl pointer-events-none"></div>
               
               {/* Блестящая анимация по краям */}
               <motion.div
-                className="absolute inset-0 rounded-3xl"
+                className="absolute inset-0 rounded-2xl"
                 animate={{
                   boxShadow: [
                     "inset 0 0 20px rgba(251, 191, 36, 0)",
@@ -135,15 +145,15 @@ export function FinalScreen({ onRestart }: FinalScreenProps) {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-center mb-8"
+            className="text-center shrink-0"
           >
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-xl inline-block">
-              <p className="text-2xl md:text-3xl text-red-600 mb-2 flex items-center justify-center gap-2 font-bold">
-                <Sparkles size={24} className="text-amber-500" />
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2 md:px-8 md:py-4 shadow-xl inline-block">
+              <p className="text-lg md:text-2xl text-red-600 mb-1 md:mb-2 flex items-center justify-center gap-2 font-bold">
+                <Sparkles size={20} className="text-amber-500 shrink-0" />
                 {config.texts.finalDate}
-                <Sparkles size={24} className="text-amber-500" />
+                <Sparkles size={20} className="text-amber-500 shrink-0" />
               </p>
-              <p className="text-xl md:text-2xl text-orange-600 italic font-medium">
+              <p className="text-base md:text-xl text-orange-600 italic font-medium">
                 {config.texts.finalSignature}
               </p>
             </div>
@@ -154,13 +164,13 @@ export function FinalScreen({ onRestart }: FinalScreenProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="text-center"
+            className="text-center shrink-0"
           >
             <motion.button
               onClick={onRestart}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-white hover:bg-white text-red-600 px-8 py-4 rounded-full shadow-xl transition-all text-lg font-bold border-2 border-red-300"
+              className="bg-white hover:bg-white text-red-600 px-6 py-3 md:px-8 md:py-4 rounded-full shadow-xl transition-all text-base md:text-lg font-bold border-2 border-red-300"
             >
               {config.texts.buttonAgain}
             </motion.button>

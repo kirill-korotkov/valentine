@@ -40,6 +40,24 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-gradient-to-br from-red-100 via-orange-50 to-amber-100"
     >
+      {/* Кнопка "Дальше" — в самом верху по центру */}
+      <motion.button
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onComplete}
+        className="absolute top-0 left-1/2 -translate-x-1/2 z-30 pt-4 pb-3 px-8 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl transition-all text-base md:text-lg font-bold relative overflow-hidden"
+      >
+        <motion.span className="relative z-10">Дальше</motion.span>
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+        />
+      </motion.button>
+
       {/* Декоративные плавающие сердечки */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
@@ -98,7 +116,7 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="relative w-full h-full max-w-4xl max-h-[80vh] rounded-2xl overflow-hidden"
+              className="relative w-full h-full max-w-4xl max-h-[70vh] rounded-2xl overflow-hidden"
             >
               <ImageWithFallback
                 src={photo}
@@ -129,7 +147,7 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
         </button>
 
         {/* Индикаторы */}
-        <div className="absolute bottom-24 md:bottom-32 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <div className="absolute bottom-20 md:bottom-28 left-1/2 -translate-x-1/2 z-20 flex gap-2">
           {photos.map((_, index) => (
             <button
               key={index}
@@ -143,35 +161,6 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
             />
           ))}
         </div>
-
-        {/* Кнопка "Дальше" с анимацией */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onComplete}
-          className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:via-orange-600 hover:to-amber-600 text-white px-10 py-4 rounded-full shadow-xl transition-all text-lg font-bold relative overflow-hidden"
-        >
-          <motion.span
-            className="relative z-10"
-          >
-            Дальше
-          </motion.span>
-          {/* Анимация блеска */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-            animate={{
-              x: ["-100%", "200%"],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 1,
-            }}
-          />
-        </motion.button>
       </div>
     </motion.div>
   );
