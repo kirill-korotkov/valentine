@@ -1,1 +1,8 @@
 node_modules
+
+# Персональные фото — не пушить на GitHub
+public/photos/*.png
+public/photos/*.jpg
+public/photos/*.jpeg
+public/photos/*.webp
+public/photos/*.gif
