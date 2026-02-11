@@ -20,3 +20,11 @@ cd valentine
 npm install
 npm run dev
 ```
+
+## Запуск через Docker (OrbStack)
+
+```bash
+docker compose up --build
+```
+
+Открой http://localhost:5173. При изменении кода HMR обновит страницу.

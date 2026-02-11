@@ -1,0 +1,14 @@
+services:
+  frontend:
+    build: .
+    ports:
+      - "5173:5173"
+    volumes:
+      # Монтируем исходники — изменения сразу попадут в контейнер (HMR)
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_BASE_PATH=/
+    stdin_open: true
+    tty: true

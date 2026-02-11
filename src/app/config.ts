@@ -15,19 +15,17 @@ export const config = {
     buttonAgain: "Ещё раз",
   },
 
-  // Фотографии для стартового экрана (твои локальные фото из public/photos)
+  // Фотографии (путь зависит от base — работает и в Docker, и на GitHub Pages)
   startPhotos: [
-    "/valentine/photos/photo-1.png",
-    "/valentine/photos/photo-2.png",
-    "/valentine/photos/photo-3.png",
-    "/valentine/photos/photo-4.png",
-    "/valentine/photos/photo-5.png",
-    "/valentine/photos/photo-6.png",
-    "/valentine/photos/apple-face.png",
+    `${import.meta.env.BASE_URL}photos/photo-1.png`,
+    `${import.meta.env.BASE_URL}photos/photo-2.png`,
+    `${import.meta.env.BASE_URL}photos/photo-3.png`,
+    `${import.meta.env.BASE_URL}photos/photo-4.png`,
+    `${import.meta.env.BASE_URL}photos/photo-5.png`,
+    `${import.meta.env.BASE_URL}photos/photo-6.png`,
+    `${import.meta.env.BASE_URL}photos/apple-face.png`,
   ],
-
-  // Финальное фото — самое трогательное :)
-  finalPhoto: "/valentine/photos/photo-5.png",
+  finalPhoto: `${import.meta.env.BASE_URL}photos/photo-5.png`,
 
   // Настройки таймингов (в миллисекундах)
   timings: {
