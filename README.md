@@ -28,3 +28,15 @@ docker compose up --build
 ```
 
 Открой http://localhost:5173. При изменении кода HMR обновит страницу.
+
+## Сборка iOS-приложения (Capacitor)
+
+Нужен Mac с Xcode. Фото положи в `public/photos/` перед сборкой.
+
+```bash
+npm run ios
+```
+
+Откроется Xcode — выбери симулятор или подключи iPhone и нажми Run.
+
+**Подробный план** (от симулятора до App Store): [docs/IOS_PLAN.md](docs/IOS_PLAN.md)

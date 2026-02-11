@@ -7,9 +7,10 @@ import { Heart, Sparkles } from "lucide-react";
 
 interface FinalScreenProps {
   onRestart: () => void;
+  onMenu: () => void;
 }
 
-export function FinalScreen({ onRestart }: FinalScreenProps) {
+export function FinalScreen({ onRestart, onMenu }: FinalScreenProps) {
   const confettiTriggered = useRef(false);
 
   useEffect(() => {
@@ -159,18 +160,26 @@ export function FinalScreen({ onRestart }: FinalScreenProps) {
             </div>
           </motion.div>
 
-          {/* Кнопка "Ещё раз" */}
+          {/* Кнопки */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="text-center shrink-0"
+            className="text-center shrink-0 flex flex-col sm:flex-row gap-3"
           >
             <motion.button
+              onClick={onMenu}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-md"
+            >
+              Главное меню
+            </motion.button>
+            <motion.button
               onClick={onRestart}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white hover:bg-white text-red-600 px-6 py-3 md:px-8 md:py-4 rounded-full shadow-xl transition-all text-base md:text-lg font-bold border-2 border-red-300"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="text-red-600 hover:text-red-700 px-6 py-2 text-sm font-medium"
             >
               {config.texts.buttonAgain}
             </motion.button>

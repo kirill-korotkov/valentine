@@ -27,6 +27,9 @@ export const config = {
   ],
   finalPhoto: `${import.meta.env.BASE_URL}photos/photo-5.png`,
 
+  // Дата начала отношений (для счётчика «Вместе»)
+  togetherStartDate: "2025-01-10",
+
   // Настройки таймингов (в миллисекундах)
   timings: {
     photoAutoAdvance: 4000, // автопереход между фото

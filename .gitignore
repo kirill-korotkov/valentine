@@ -1,4 +1,5 @@
 node_modules
+dist
 
 # Персональные фото — не пушить на GitHub
 public/photos/*.png
@@ -6,3 +7,4 @@ public/photos/*.jpg
 public/photos/*.jpeg
 public/photos/*.webp
 public/photos/*.gif
+.DS_Store
