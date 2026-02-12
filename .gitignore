@@ -8,3 +8,9 @@ public/photos/*.jpeg
 public/photos/*.webp
 public/photos/*.gif
 .DS_Store
+
+# Python venv
+.venv-docx/
+
+# Backend — отдельный репозиторий backend-for-render-valentine
+valentine-api/
