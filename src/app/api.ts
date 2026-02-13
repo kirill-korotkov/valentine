@@ -14,15 +14,14 @@ function getBaseUrl(): string {
   return API_URL.replace(/\/$/, "");
 }
 
-/** Преобразует относительный URL фото с бэкенда в абсолютный (для загрузки с другого домена). */
-export function getAbsolutePhotoUrl(src: string): string {
-  if (!src || src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://"))
+/** Преобразует URL фото в абсолютный. data: и http(s): без изменений, остальное — относительно API. */
+export function getAbsolutePhotoUrl(src: string | undefined): string {
+  if (!src) return "";
+  if (src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://"))
     return src;
-  if (API_URL && (src.startsWith("/") || src.startsWith("api"))) {
-    const base = getBaseUrl();
-    return src.startsWith("/") ? base + src : base + "/" + src;
-  }
-  return src;
+  if (!API_URL) return src;
+  const base = getBaseUrl();
+  return src.startsWith("/") ? base + src : base + "/" + src;
 }
 
 export async function apiCreateRoom(): Promise<string> {

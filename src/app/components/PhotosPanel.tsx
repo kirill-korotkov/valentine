@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { motion } from "motion/react";
 import { Plus, Images, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSync } from "../SyncContext";
-import { getAbsolutePhotoUrl } from "../api";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 function generateId() {
@@ -11,7 +10,7 @@ function generateId() {
 }
 
 export function PhotosPanel() {
-  const { gallery, setGallery, addPhotoToCloud, roomId, isSyncAvailable } = useSync();
+  const { gallery, setGallery, addPhotoToCloud, getPhotoDisplayUrl, storeLocalPhotoData, roomId, isSyncAvailable } = useSync();
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +23,7 @@ export function PhotosPanel() {
       isUser: true,
       addedAt: Date.now(),
     };
+    storeLocalPhotoData(photo.id, dataUrl);
     if (roomId && isSyncAvailable) {
       setUploading(true);
       try {
@@ -155,7 +155,7 @@ export function PhotosPanel() {
                 style={{ touchAction: "manipulation" }}
               >
                 <ImageWithFallback
-                  src={getAbsolutePhotoUrl(photo.src)}
+                  src={getPhotoDisplayUrl(photo)}
                   alt=""
                   className="w-full h-full object-cover"
                 />
@@ -193,7 +193,7 @@ export function PhotosPanel() {
                 </button>
                 <div className="flex-1 flex items-center justify-center min-w-0 p-4">
                   <img
-                    src={getAbsolutePhotoUrl(gallery[viewerIndex!].src)}
+                    src={getPhotoDisplayUrl(gallery[viewerIndex!])}
                     alt=""
                     className="max-w-full max-h-full object-contain"
                     draggable={false}

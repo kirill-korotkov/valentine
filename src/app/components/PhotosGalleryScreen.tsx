@@ -1,7 +1,6 @@
 import { motion } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 import { useSync } from "../SyncContext";
-import { getAbsolutePhotoUrl } from "../api";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 interface PhotosGalleryScreenProps {
@@ -9,7 +8,7 @@ interface PhotosGalleryScreenProps {
 }
 
 export function PhotosGalleryScreen({ onBack }: PhotosGalleryScreenProps) {
-  const { gallery } = useSync();
+  const { gallery, getPhotoDisplayUrl } = useSync();
 
   return (
     <motion.div
@@ -35,7 +34,7 @@ export function PhotosGalleryScreen({ onBack }: PhotosGalleryScreenProps) {
               {gallery.map((photo) => (
                 <div key={photo.id} className="aspect-square rounded-xl overflow-hidden bg-red-50">
                   <ImageWithFallback
-                    src={getAbsolutePhotoUrl(photo.src)}
+                    src={getPhotoDisplayUrl(photo)}
                     alt=""
                     className="w-full h-full object-cover"
                   />

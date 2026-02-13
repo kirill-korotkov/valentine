@@ -16,6 +16,7 @@ import {
   uploadPhotoToCloud,
   isSyncAvailable,
 } from "./sync";
+import { getAbsolutePhotoUrl } from "./api";
 import type { GalleryPhoto, CalendarDate, Place, Wish } from "./types";
 
 function loadLocal<T>(key: string, fallback: T): T {
@@ -58,9 +59,15 @@ interface SyncContextValue {
   leaveRoom: () => void;
   isSyncAvailable: boolean;
   addPhotoToCloud: (photo: GalleryPhoto) => Promise<GalleryPhoto | null>;
+  /** URL для отображения: data URL из кэша или абсолютный URL. */
+  getPhotoDisplayUrl: (photo: GalleryPhoto) => string;
+  /** Сохранить data URL локально (для фото, добавленных на этом устройстве). */
+  storeLocalPhotoData: (photoId: string, dataUrl: string) => void;
 }
 
 const SyncContext = createContext<SyncContextValue | null>(null);
+
+const localPhotoCache = new Map<string, string>();
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const [gallery, setGalleryState] = useState<GalleryPhoto[]>(() =>
@@ -132,6 +139,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     if (!roomId || !isSyncAvailable()) return;
     const unsub = subscribeToCloud(roomId, (data) => {
       isRemoteUpdateRef.current = true;
+      data.gallery.forEach((p) => {
+        if (p.src.startsWith("data:")) localPhotoCache.set(p.id, p.src);
+      });
       setGalleryState(data.gallery);
       setCalendarState(data.calendar);
       setPlacesState(data.places);
@@ -179,6 +189,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     async (photo: GalleryPhoto): Promise<GalleryPhoto | null> => {
       if (!roomId || !photo.isUser || !photo.src.startsWith("data:")) return null;
       try {
+        localPhotoCache.set(photo.id, photo.src);
         const url = await uploadPhotoToCloud(roomId, photo.id, photo.src);
         return { ...photo, src: url, storagePath: `rooms/${roomId}/photos/${photo.id}.jpg` };
       } catch {
@@ -187,6 +198,16 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     },
     [roomId]
   );
+
+  const getPhotoDisplayUrl = useCallback((photo: GalleryPhoto): string => {
+    const cached = localPhotoCache.get(photo.id);
+    if (cached) return cached;
+    return getAbsolutePhotoUrl(photo.src);
+  }, []);
+
+  const storeLocalPhotoData = useCallback((photoId: string, dataUrl: string) => {
+    localPhotoCache.set(photoId, dataUrl);
+  }, []);
 
   const value: SyncContextValue = {
     gallery,
@@ -203,6 +224,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     leaveRoom: handleLeaveRoom,
     isSyncAvailable: isSyncAvailable(),
     addPhotoToCloud,
+    getPhotoDisplayUrl,
+    storeLocalPhotoData,
   };
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
