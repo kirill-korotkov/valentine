@@ -1,5 +1,7 @@
 node_modules
 dist
+.env
+.env.local
 
 # Персональные фото — не пушить на GitHub
 public/photos/*.png
