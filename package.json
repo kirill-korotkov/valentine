@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "build:ios": "VITE_BASE_PATH=/ vite build",
+    "build:ios": "VITE_BASE_PATH=/ VITE_API_URL=https://backend-for-render-valentine.onrender.com vite build",
     "cap:sync": "cap sync ios",
     "cap:ios": "cap open ios",
     "ios": "npm run build:ios && cap sync ios && cap open ios"

@@ -51,7 +51,7 @@ export function SyncScreen({ onBack }: SyncScreenProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!isSyncAvailable()) {
+  if (!isSyncAvailable) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
