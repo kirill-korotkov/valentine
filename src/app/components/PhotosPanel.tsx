@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { Plus, Images, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSync } from "../SyncContext";
 import { getAbsolutePhotoUrl } from "../api";
@@ -139,8 +139,20 @@ export function PhotosPanel() {
             {gallery.map((photo, i) => (
               <button
                 key={photo.id}
-                onClick={() => setViewerIndex(i)}
-                className="aspect-square rounded-xl overflow-hidden bg-red-50 touch-manipulation"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setViewerIndex(i);
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setViewerIndex(i);
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="aspect-square rounded-xl overflow-hidden bg-red-50 select-none active:scale-[0.98]"
+                style={{ touchAction: "manipulation" }}
               >
                 <ImageWithFallback
                   src={getAbsolutePhotoUrl(photo.src)}
@@ -154,71 +166,62 @@ export function PhotosPanel() {
       )}
 
       {/* Fullscreen viewer — портал в body, чтобы не обрезался overflow карусели */}
-      {createPortal(
-        <AnimatePresence>
-          {viewerIndex !== null && gallery[viewerIndex] && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+      {typeof document !== "undefined" &&
+        createPortal(
+          viewerIndex !== null && gallery[viewerIndex] ? (
+            <div
               className="fixed inset-0 z-[9999] bg-black flex flex-col"
+              style={{ touchAction: "none" }}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
-              style={{ touchAction: "none" }}
             >
               <button
-                onClick={() => setViewerIndex(null)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white touch-manipulation"
                 type="button"
+                onClick={() => setViewerIndex(null)}
+                className="absolute top-4 right-4 z-20 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white touch-manipulation"
               >
                 <X className="w-6 h-6" />
               </button>
-              <div className="relative flex-1 overflow-hidden flex items-center justify-center">
+              <div className="relative flex-1 overflow-hidden flex items-center justify-center min-h-0">
                 <button
-                  onClick={handlePrev}
-                  className="absolute left-2 z-10 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white touch-manipulation hover:bg-white/30 disabled:opacity-30"
-                  disabled={viewerIndex <= 0}
                   type="button"
+                  onClick={handlePrev}
+                  className="absolute left-2 z-20 w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white touch-manipulation disabled:opacity-30"
+                  disabled={viewerIndex! <= 0}
                 >
                   <ChevronLeft className="w-8 h-8" />
                 </button>
-                <motion.div
-                  key={viewerIndex}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex-1 flex items-center justify-center min-w-0 p-4"
-                >
-              <ImageWithFallback
-                src={getAbsolutePhotoUrl(gallery[viewerIndex].src)}
-                alt=""
-                className="max-w-full max-h-full object-contain"
-              />
-                </motion.div>
+                <div className="flex-1 flex items-center justify-center min-w-0 p-4">
+                  <img
+                    src={getAbsolutePhotoUrl(gallery[viewerIndex!].src)}
+                    alt=""
+                    className="max-w-full max-h-full object-contain"
+                    draggable={false}
+                  />
+                </div>
                 <button
-                  onClick={handleNext}
-                  className="absolute right-2 z-10 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white touch-manipulation hover:bg-white/30 disabled:opacity-30"
-                  disabled={viewerIndex >= gallery.length - 1}
                   type="button"
+                  onClick={handleNext}
+                  className="absolute right-2 z-20 w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white touch-manipulation disabled:opacity-30"
+                  disabled={viewerIndex! >= gallery.length - 1}
                 >
                   <ChevronRight className="w-8 h-8" />
                 </button>
               </div>
-              <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-1">
+              <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
                 {gallery.map((_, i) => (
                   <div
                     key={i}
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-2.5 h-2.5 rounded-full ${
                       i === viewerIndex ? "bg-white" : "bg-white/40"
                     }`}
                   />
                 ))}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+            </div>
+          ) : null,
+          document.body
+        )}
     </div>
   );
 }
