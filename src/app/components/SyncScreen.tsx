@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { ChevronLeft, Copy, Check, Link2, UserPlus } from "lucide-react";
 import { getInviteLink } from "../sync";
@@ -8,6 +8,9 @@ interface SyncScreenProps {
   onBack: () => void;
 }
 
+const EDGE_ZONE = 50;
+const SWIPE_THRESHOLD = 80;
+
 export function SyncScreen({ onBack }: SyncScreenProps) {
   const { roomId, createRoom, joinRoom, leaveRoom, isSyncAvailable } = useSync();
   const [joinInput, setJoinInput] = useState("");
@@ -15,6 +18,36 @@ export function SyncScreen({ onBack }: SyncScreenProps) {
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    const handleStart = (e: TouchEvent | PointerEvent) => {
+      const x = "touches" in e ? e.touches[0].clientX : e.clientX;
+      if (x < EDGE_ZONE) {
+        const y = "touches" in e ? e.touches[0].clientY : e.clientY;
+        swipeStart.current = { x, y };
+      } else swipeStart.current = null;
+    };
+    const handleEnd = (e: TouchEvent | PointerEvent) => {
+      if (!swipeStart.current) return;
+      const x = "changedTouches" in e ? e.changedTouches[0].clientX : e.clientX;
+      const y = "changedTouches" in e ? e.changedTouches[0].clientY : e.clientY;
+      const dx = x - swipeStart.current.x;
+      const dy = Math.abs(y - swipeStart.current.y);
+      if (dx > SWIPE_THRESHOLD && dy < dx) onBack();
+      swipeStart.current = null;
+    };
+    window.addEventListener("touchstart", handleStart, { passive: true });
+    window.addEventListener("touchend", handleEnd, { passive: true });
+    window.addEventListener("pointerdown", handleStart);
+    window.addEventListener("pointerup", handleEnd);
+    return () => {
+      window.removeEventListener("touchstart", handleStart);
+      window.removeEventListener("touchend", handleEnd);
+      window.removeEventListener("pointerdown", handleStart);
+      window.removeEventListener("pointerup", handleEnd);
+    };
+  }, [onBack]);
 
   const handleCreate = async () => {
     setCreating(true);

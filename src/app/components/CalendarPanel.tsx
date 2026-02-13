@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "motion/react";
-import { Plus, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Heart } from "lucide-react";
 import { useSync } from "../SyncContext";
 import { SwipeableRow } from "./SwipeableRow";
 import {
@@ -12,6 +12,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Calendar } from "./ui/calendar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import type { CalendarDate as CalendarDateType } from "../types";
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + "T12:00:00");
@@ -32,6 +34,17 @@ function formatDate(dateStr: string) {
   });
 }
 
+/** Нормализация даты в YYYY-MM-DD (на случай различающихся форматов) */
+function normalizeDateStr(val: string): string {
+  if (!val) return "";
+  const d = new Date(val + "T12:00:00");
+  if (isNaN(d.getTime())) return val;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function CalendarPanel() {
   const { calendar, setCalendar } = useSync();
   const [addOpen, setAddOpen] = useState(false);
@@ -40,13 +53,27 @@ export function CalendarPanel() {
   const [newNote, setNewNote] = useState("");
   const [deleteDate, setDeleteDate] = useState<string | null>(null);
 
+  const importantDates = useMemo(() => {
+    return calendar
+      .map((c) => {
+        const d = new Date(c.date + "T12:00:00");
+        return isNaN(d.getTime()) ? null : d;
+      })
+      .filter((d): d is Date => d !== null);
+  }, [calendar]);
+
   const handleAdd = () => {
-    if (!newDate) return;
-    const exists = calendar.some((c) => c.date === newDate);
+    const normalized = normalizeDateStr(newDate);
+    if (!normalized) return;
+    const exists = calendar.some((c) => c.date === normalized);
     if (exists) return;
     setCalendar((prev) => [
       ...prev,
-      { date: newDate, title: newTitle.trim() || undefined, note: newNote.trim() || undefined },
+      {
+        date: normalized,
+        title: newTitle.trim() || undefined,
+        note: newNote.trim() || undefined,
+      } as CalendarDateType,
     ]);
     setNewDate("");
     setNewTitle("");
@@ -59,52 +86,112 @@ export function CalendarPanel() {
     setDeleteDate(null);
   };
 
-  const sorted = [...calendar].sort((a, b) => b.date.localeCompare(a.date));
+  const sorted = useMemo(
+    () => [...calendar].sort((a, b) => b.date.localeCompare(a.date)),
+    [calendar]
+  );
+
+  const today = new Date();
+  const defaultMonth = importantDates.length > 0
+    ? importantDates[0]
+    : today;
 
   return (
-    <div className="min-h-full pb-24">
-      <h2 className="text-lg font-semibold text-red-800 mb-4">Календарь дат</h2>
-
-      {calendar.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-16 px-4"
-        >
-          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <CalendarIcon className="w-8 h-8 text-red-300" />
-          </div>
-          <p className="text-red-600 text-center mb-6">
-            Добавьте важную дату
-          </p>
-          <Button
-            onClick={() => setAddOpen(true)}
-            className="bg-red-500 hover:bg-red-600 text-white gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Добавить дату
-          </Button>
-        </motion.div>
-      ) : (
-        <div className="space-y-2">
-          {sorted.map((item) => (
-            <SwipeableRow
-              key={item.date}
-              onDelete={() => setDeleteDate(item.date)}
-            >
-              <div className="p-4">
-                <p className="font-semibold text-red-800">{formatDate(item.date)}</p>
-                {item.title && (
-                  <p className="text-red-600 text-sm mt-0.5">{item.title}</p>
-                )}
-                {item.note && (
-                  <p className="text-red-500 text-sm mt-0.5">{item.note}</p>
-                )}
-              </div>
-            </SwipeableRow>
-          ))}
+    <div className="h-full flex flex-col min-h-0 pb-24">
+      {/* Календарь — занимает всю верхнюю половину экрана */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="shrink-0 h-[50vh] min-h-[320px] flex flex-col items-center justify-center px-3 pt-2"
+        style={{
+          background: "linear-gradient(180deg, rgba(255,228,225,0.7) 0%, rgba(254,247,243,0.5) 50%, transparent 100%)",
+        }}
+      >
+        <div className="calendar-full w-full flex-1 flex flex-col justify-center">
+          <Calendar
+            defaultMonth={defaultMonth}
+            modifiers={{ important: importantDates }}
+            modifiersClassNames={{
+              important: "!bg-red-500 !text-white rounded-full font-semibold shadow-md hover:!bg-red-600",
+            }}
+            classNames={{
+              months: "w-full flex justify-center",
+              month: "w-full",
+              table: "w-full table-fixed",
+              caption: "flex justify-center py-3",
+              caption_label: "text-xl font-semibold text-red-800",
+              nav: "flex items-center gap-2",
+              nav_button: "size-10 rounded-full text-red-600 hover:bg-red-100 hover:text-red-700",
+              head_cell: "text-red-500 font-medium py-2 text-center",
+              cell: "text-center align-middle",
+              day: "size-12 mx-auto text-base font-medium text-red-800 rounded-full hover:bg-red-100/80 data-[outside]:text-red-200 flex items-center justify-center",
+              day_today: "bg-red-100 font-bold",
+            }}
+          />
         </div>
-      )}
+      </motion.div>
+
+      {/* Список важных дат — нижняя половина */}
+      <div className="flex-1 min-h-0 flex flex-col pt-4 overflow-y-auto">
+        <h3 className="text-sm font-medium text-red-700 flex items-center gap-2 shrink-0 mb-2">
+          <Heart className="w-4 h-4" />
+          Важные даты
+        </h3>
+
+        {calendar.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center py-12 px-4 rounded-2xl bg-white/60 border border-red-50"
+          >
+            <CalendarIcon className="w-12 h-12 text-red-200 mb-3" />
+            <p className="text-red-600 text-center text-sm mb-4">
+              Пока нет важных дат.<br />
+              Добавьте первую!
+            </p>
+            <Button
+              onClick={() => setAddOpen(true)}
+              className="bg-red-500 hover:bg-red-600 text-white gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Добавить дату
+            </Button>
+          </motion.div>
+        ) : (
+          <div className="space-y-2">
+            {sorted.map((item) => (
+              <SwipeableRow
+                key={item.date}
+                onDelete={() => setDeleteDate(item.date)}
+              >
+                <div className="p-4 flex items-start gap-3">
+                  <div className="shrink-0 w-12 h-12 rounded-xl bg-red-50 flex flex-col items-center justify-center">
+                    <span className="text-xs font-medium text-red-600 leading-tight">
+                      {new Date(item.date + "T12:00:00").toLocaleDateString("ru-RU", {
+                        month: "short",
+                      })}
+                    </span>
+                    <span className="text-lg font-bold text-red-700 leading-tight -mt-0.5">
+                      {new Date(item.date + "T12:00:00").getDate()}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-red-800">
+                      {item.title || formatDate(item.date)}
+                    </p>
+                    {item.title && (
+                      <p className="text-red-500 text-sm">{formatDate(item.date)}</p>
+                    )}
+                    {item.note && (
+                      <p className="text-red-600/80 text-sm mt-1">{item.note}</p>
+                    )}
+                  </div>
+                </div>
+              </SwipeableRow>
+            ))}
+          </div>
+        )}
+      </div>
 
       {calendar.length > 0 && (
         <motion.div

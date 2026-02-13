@@ -6,6 +6,9 @@ import { CalendarPanel } from "./CalendarPanel";
 import { PlacesPanel } from "./PlacesPanel";
 import { PhotosPanel } from "./PhotosPanel";
 
+const EDGE_ZONE = 50;
+const SWIPE_THRESHOLD = 80;
+
 const SECTIONS = [
   { id: "wishes" as const, icon: Heart, label: "Желания" },
   { id: "calendar" as const, icon: Calendar, label: "Календарь" },
@@ -23,6 +26,38 @@ export function SectionsCarousel({ initialSection, onBack }: SectionsCarouselPro
   const [activeIndex, setActiveIndex] = useState(
     SECTIONS.findIndex((s) => s.id === initialSection) || 0
   );
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
+  // Свайп вправо от левого края — выход в главное меню
+  useEffect(() => {
+    const handleStart = (e: TouchEvent | PointerEvent) => {
+      const x = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const y = "touches" in e ? e.touches[0].clientY : e.clientY;
+      if (x < EDGE_ZONE) swipeStart.current = { x, y };
+      else swipeStart.current = null;
+    };
+
+    const handleEnd = (e: TouchEvent | PointerEvent) => {
+      if (!swipeStart.current) return;
+      const x = "changedTouches" in e ? e.changedTouches[0].clientX : e.clientX;
+      const y = "changedTouches" in e ? e.changedTouches[0].clientY : e.clientY;
+      const dx = x - swipeStart.current.x;
+      const dy = Math.abs(y - swipeStart.current.y);
+      if (dx > SWIPE_THRESHOLD && dy < dx) onBack();
+      swipeStart.current = null;
+    };
+
+    window.addEventListener("touchstart", handleStart, { passive: true });
+    window.addEventListener("touchend", handleEnd, { passive: true });
+    window.addEventListener("pointerdown", handleStart);
+    window.addEventListener("pointerup", handleEnd);
+    return () => {
+      window.removeEventListener("touchstart", handleStart);
+      window.removeEventListener("touchend", handleEnd);
+      window.removeEventListener("pointerdown", handleStart);
+      window.removeEventListener("pointerup", handleEnd);
+    };
+  }, [onBack]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -96,7 +131,7 @@ export function SectionsCarousel({ initialSection, onBack }: SectionsCarouselPro
             <WishesPanel />
           </div>
           <div
-            className="shrink-0 snap-start overflow-y-auto px-4 pb-8"
+            className="shrink-0 snap-start overflow-hidden px-4 pb-4 flex flex-col min-h-0"
             style={{ width: "25%" }}
           >
             <CalendarPanel />

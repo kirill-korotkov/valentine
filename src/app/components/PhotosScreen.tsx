@@ -40,24 +40,6 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-gradient-to-br from-red-100 via-orange-50 to-amber-100"
     >
-      {/* Кнопка "Дальше" — в самом верху по центру */}
-      <motion.button
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onComplete}
-        className="absolute top-0 left-1/2 -translate-x-1/2 z-30 pt-4 pb-3 px-8 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl transition-all text-base md:text-lg font-bold relative overflow-hidden"
-      >
-        <motion.span className="relative z-10">Дальше</motion.span>
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-          animate={{ x: ["-100%", "200%"] }}
-          transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-        />
-      </motion.button>
-
       {/* Декоративные плавающие сердечки */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(10)].map((_, i) => (
@@ -116,12 +98,12 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="relative w-full h-full max-w-4xl max-h-[70vh] rounded-2xl overflow-hidden"
+              className="relative w-full h-full max-w-2xl max-h-[60vh] rounded-2xl overflow-hidden flex items-center justify-center bg-white/30"
             >
               <ImageWithFallback
                 src={photo}
                 alt={`Наше фото ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="max-w-full max-h-full object-contain"
               />
               {/* Декоративная рамка с градиентом */}
               <div className="absolute inset-0 border-4 border-white/50 rounded-2xl pointer-events-none"></div>
@@ -146,8 +128,11 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
           <ChevronRight className="w-6 h-6 text-red-600" />
         </button>
 
-        {/* Индикаторы */}
-        <div className="absolute bottom-20 md:bottom-28 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {/* Индикаторы — над кнопкой */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 z-20 flex gap-2"
+          style={{ bottom: 'calc(max(1rem, env(safe-area-inset-bottom)) + 4rem)' }}
+        >
           {photos.map((_, index) => (
             <button
               key={index}
@@ -160,6 +145,29 @@ export function PhotosScreen({ onComplete }: PhotosScreenProps) {
               aria-label={`Перейти к фото ${index + 1}`}
             />
           ))}
+        </div>
+
+        {/* Кнопка "Дальше" — в самом низу по центру */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-30 flex justify-center"
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+        >
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onComplete}
+            className="py-4 px-10 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 hover:from-red-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-full shadow-xl transition-all text-lg md:text-xl font-bold relative overflow-hidden touch-manipulation"
+          >
+            <motion.span className="relative z-10">Дальше</motion.span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full"
+              animate={{ x: ["-100%", "200%"] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            />
+          </motion.button>
         </div>
       </div>
     </motion.div>

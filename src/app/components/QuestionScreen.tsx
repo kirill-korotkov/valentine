@@ -48,7 +48,7 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
     if (clickedYes || !noButtonRef.current || !containerRef.current) return;
 
     const runAwayRadius = 130;
-    const runAwaySpeed = 20;
+    const runAwaySpeed = 12;
     const padding = 60;
 
     const maxX = Math.min(300, window.innerWidth / 2 - padding);
@@ -216,18 +216,16 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
           <div className="flex items-center gap-3 md:gap-6">
             {/* "Да" */}
             <motion.button
-              initial={{ x: -100, opacity: 0 }}
+              initial={false}
               animate={
                 clickedYes
                   ? {
-                      x: 0,
-                      opacity: 1,
                       scale: [1, 1.3, 1.2],
                       rotate: [0, -10, 10, -10, 0],
                     }
-                  : { x: 0, opacity: 1 }
+                  : {}
               }
-              transition={{ delay: 0.3 }}
+              transition={clickedYes ? { duration: 0.5 } : undefined}
               onClick={handleYesClick}
               disabled={clickedYes}
               whileHover={{ scale: 1.1 }}
@@ -267,7 +265,7 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
             {/* "Нет" */}
             <motion.button
               ref={noButtonRef}
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{
                 x: noButtonPosition.x,
                 y: noButtonPosition.y,
@@ -275,10 +273,10 @@ export function QuestionScreen({ onYes, onNo }: QuestionScreenProps) {
                 scale: buttonScale,
               }}
               transition={{
-                opacity: { delay: 0.3 },
-                x: { type: "spring", stiffness: 180, damping: 20 },
-                y: { type: "spring", stiffness: 180, damping: 20 },
-                scale: { type: "spring", stiffness: 300, damping: 20 },
+                opacity: { duration: 0.2 },
+                x: { type: "spring", stiffness: 80, damping: 25 },
+                y: { type: "spring", stiffness: 80, damping: 25 },
+                scale: { type: "spring", stiffness: 200, damping: 22 },
               }}
               onClick={handleNoClick}
               disabled={clickedYes}
