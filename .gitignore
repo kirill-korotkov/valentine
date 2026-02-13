@@ -16,3 +16,4 @@ public/photos/*.gif
 
 # Backend — отдельный репозиторий backend-for-render-valentine
 valentine-api/
+backend-temp/

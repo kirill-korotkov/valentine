@@ -24,6 +24,11 @@ export function getAbsolutePhotoUrl(src: string | undefined): string {
   return src.startsWith("/") ? base + src : base + "/" + src;
 }
 
+/** URL для загрузки фото с бэкенда (совпадает с backend: GET /api/photos/:roomId/:photoId). */
+export function getPhotoUrlFromBackend(roomId: string, photoId: string): string {
+  return `${getBaseUrl()}/api/photos/${roomId}/${photoId}`;
+}
+
 export async function apiCreateRoom(): Promise<string> {
   const res = await fetch(`${getBaseUrl()}/api/rooms`, {
     method: "POST",

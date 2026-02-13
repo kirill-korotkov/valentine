@@ -16,7 +16,7 @@ import {
   uploadPhotoToCloud,
   isSyncAvailable,
 } from "./sync";
-import { getAbsolutePhotoUrl } from "./api";
+import { getAbsolutePhotoUrl, getPhotoUrlFromBackend } from "./api";
 import type { GalleryPhoto, CalendarDate, Place, Wish } from "./types";
 
 function loadLocal<T>(key: string, fallback: T): T {
@@ -202,8 +202,11 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const getPhotoDisplayUrl = useCallback((photo: GalleryPhoto): string => {
     const cached = localPhotoCache.get(photo.id);
     if (cached) return cached;
+    if (roomId) {
+      return getPhotoUrlFromBackend(roomId, photo.id);
+    }
     return getAbsolutePhotoUrl(photo.src);
-  }, []);
+  }, [roomId]);
 
   const storeLocalPhotoData = useCallback((photoId: string, dataUrl: string) => {
     localPhotoCache.set(photoId, dataUrl);
