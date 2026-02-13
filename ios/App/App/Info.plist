@@ -47,5 +47,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Valentine использует камеру для добавления фото в общую галерею.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Valentine использует доступ к фото для добавления снимков в общую галерею.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Valentine сохраняет фото в галерею по вашему запросу.</string>
 </dict>
 </plist>
